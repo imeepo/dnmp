@@ -1,0 +1,7 @@
+.env
+docker-compose.yml
+www/*
+!www/default/
+services/nginx/conf.d/*
+!services/nginx/conf.d/0.default.conf
+data/postgres/

@@ -1,0 +1,306 @@
+version: "3"
+
+networks:
+  frontend:
+    driver: ${NETWORKS_DRIVER}
+  backend:
+    driver: ${NETWORKS_DRIVER}
+  elknet:
+    driver: ${NETWORKS_DRIVER}
+
+services:
+
+# +---------------------+ #
+#          Nginx
+# +---------------------+ #
+  nginx:
+    build:
+      context: ${SERVICE_DIR}/nginx
+      args:
+        NGINX_VERSION: ${NGINX_VERSION}
+    ports:
+      - "${NGINX_HTTP_PORT}:80"
+      - "${NGINX_HTTPS_PORT}:443"
+    volumes:
+      - ${SOURCE_DIR}:/www
+      - ${NGINX_DIR}:/etc/nginx
+      - ${LOGS_DIR}/nginx:/var/log/nginx
+    environment:
+      TZ: "$TZ"
+    networks:
+      - frontend
+      - backend
+    restart: always
+    image: ${DOCKER_HUB_USERNAME}/nginx:${NGINX_VERSION}-alpine
+    container_name: nginx
+
+## +---------------------+ #
+##        MySQL 8.0
+## +---------------------+ #  
+#  mysql80:
+#    ports:
+#      - "${MYSQL_80_PORT}:3306"
+#    volumes:
+#      - ${MYSQL_80_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf
+#      - ${DATA_DIR}/mysql80:/var/lib/mysql
+#      - ${LOGS_DIR}/mysql80:/var/log/mysql
+#    environment:
+#      MYSQL_ROOT_HOST: "${MYSQL_80_ROOT_HOST}"
+#      MYSQL_ROOT_PASSWORD: "${MYSQL_80_ROOT_PASSWORD}"
+#      TZ: "$TZ"
+#    networks:
+#      - backend
+#    restart: always
+#    image: mysql:${MYSQL_80_VERSION}
+#    container_name: mysql80
+
+# +---------------------+ #
+#        MySQL 5.7
+# +---------------------+ #
+  mysql57:
+    ports:
+      - "${MYSQL_57_PORT}:3306"
+    volumes:
+      - ${MYSQL_57_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf
+      - ${DATA_DIR}/mysql57:/var/lib/mysql
+      - ${LOGS_DIR}/mysql57:/var/log/mysql
+    environment:
+      MYSQL_ROOT_HOST: "${MYSQL_57_ROOT_HOST}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_57_ROOT_PASSWORD}"
+      TZ: "$TZ"
+    networks:
+      - backend
+    restart: always
+    image: mysql:${MYSQL_57_VERSION}
+    container_name: mysql57
+    
+# +---------------------+ #
+#          Redis
+# +---------------------+ #
+  redis:
+    build:
+      context: ${SERVICE_DIR}/redis
+      args:
+        REDIS_VERSION: ${REDIS_VERSION}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - ${REDIS_CONF_FILE}:/etc/redis.conf
+      - ${DATA_DIR}/redis:/data
+    entrypoint: ["redis-server", "/etc/redis.conf"]
+    environment:
+      TZ: "$TZ"
+    restart: always
+    networks:
+      - backend
+    image: ${DOCKER_HUB_USERNAME}/redis:${REDIS_VERSION}-alpine
+    container_name: redis
+
+## +---------------------+ #
+##         PHP 8.1
+## +---------------------+ #
+#  php81:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_81_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_81_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_81_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_81_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_81_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/8.1:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_81_VERSION}-fpm-alpine
+#    container_name: php81
+ 
+## +---------------------+ #
+##         PHP 8.0
+## +---------------------+ #
+#  php80:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_80_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_80_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_80_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_80_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_80_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/8.0:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_80_VERSION}-fpm-alpine
+#    container_name: php80
+ 
+## +---------------------+ #
+##         PHP 7.4
+## +---------------------+ #
+#  php74:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_74_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_74_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_74_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_74_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_74_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/7.4:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_74_VERSION}-fpm-alpine
+#    container_name: php74
+ 
+## +---------------------+ #
+##         PHP 7.3
+## +---------------------+ #
+#  php73:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_73_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_73_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_73_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_73_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_73_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/7.3:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_73_VERSION}-fpm-alpine
+#    container_name: php73
+ 
+## +---------------------+ #
+##         PHP 7.2
+## +---------------------+ #
+#  php72:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_72_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_72_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_72_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_72_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_72_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/7.2:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_72_VERSION}-fpm-alpine
+#    container_name: php72
+ 
+## +---------------------+ #
+##         PHP 7.1
+## +---------------------+ #
+#  php71:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_71_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_71_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_71_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_71_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_71_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/7.1:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_71_VERSION}-fpm-alpine
+#    container_name: php71
+
+# +---------------------+ #
+#         PHP 7.0
+# +---------------------+ #
+  php70:
+    build:
+      context: ${SERVICE_DIR}/php
+      args:
+        PHP_VERSION: ${PHP_70_VERSION}
+        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+        TZ: "$TZ"
+        PHP_EXTENSIONS: ${PHP_70_EXTENSIONS}
+        PHP_INSTALL_COMPOSER: ${PHP_70_INSTALL_COMPOSER}
+    volumes:
+      - ${SOURCE_DIR}:/www
+      - ${PHP_70_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+      - ${PHP_70_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+      - ${LOGS_DIR}/php/7.0:/var/log/php
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - frontend
+      - backend
+    restart: always
+    image: ${DOCKER_HUB_USERNAME}/php:${PHP_70_VERSION}-fpm-alpine
+    container_name: php70
+
+## +---------------------+ #
+##         PHP 5.6
+## +---------------------+ #
+#  php56:
+#    build:
+#      context: ${SERVICE_DIR}/php
+#      args:
+#        PHP_VERSION: ${PHP_56_VERSION}
+#        ALPINE_MIRRORS_URL: ${ALPINE_MIRRORS_URL}
+#        TZ: "$TZ"
+#        PHP_EXTENSIONS: ${PHP_56_EXTENSIONS}
+#        PHP_INSTALL_COMPOSER: ${PHP_56_INSTALL_COMPOSER}
+#    volumes:
+#      - ${SOURCE_DIR}:/www
+#      - ${PHP_56_PHP_CONF_FILE}:/usr/local/etc/php/php.ini
+#      - ${PHP_56_FPM_CONF_FILE}:/usr/local/etc/php-fpm.d/www.conf
+#      - ${LOGS_DIR}/php/5.6:/var/log/php
+#    cap_add:
+#      - SYS_PTRACE
+#    networks:
+#      - frontend
+#      - backend
+#    restart: always
+#    image: ${DOCKER_HUB_USERNAME}/php:${PHP_56_VERSION}-fpm-alpine
+#    container_name: php56
+
