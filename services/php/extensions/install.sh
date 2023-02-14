@@ -207,7 +207,7 @@ fi
 
 if [[ -z "${EXTENSIONS##*,gd,*}" ]]; then
     echo "---------- Install gd ----------"
-    isPhpVersionGreaterOrEqual 8 0
+    isPhpVersionGreaterOrEqual 7 4
 
     if [[ "$?" = "1" ]]; then
         # "--with-xxx-dir" was removed from php 7.4,
